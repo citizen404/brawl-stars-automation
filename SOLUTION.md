@@ -83,7 +83,8 @@ Remote Appium Server
 Android Device / Emulator
   |
   v
-Google Play + Brawl Stars```
+Google Play + Brawl Stars
+```
 
 ## Device Provider Requirements
 
