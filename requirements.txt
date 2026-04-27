@@ -1,0 +1,5 @@
+Appium-Python-Client==4.0.0
+opencv-python-headless
+numpy
+selenium
+python-dotenv
