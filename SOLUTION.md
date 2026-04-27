@@ -33,7 +33,8 @@ The Android device itself is provided by a remote device-farm provider through a
 GOOGLE_EMAIL=
 GOOGLE_PASSWORD=
 APPIUM_SERVER=
-DEVICE_UDID=```
+DEVICE_UDID=
+```
 
 ## Automation Stack
 
