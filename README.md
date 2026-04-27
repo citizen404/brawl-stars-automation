@@ -124,7 +124,8 @@ assets/age_slider.png
 assets/level0_start.png
 assets/shop_btn.png
 assets/name_ok_btn.png
-assets/offer_price.png```
+assets/offer_price.png
+```
 
 ## Payment Safety
 
