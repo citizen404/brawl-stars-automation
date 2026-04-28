@@ -1,77 +1,125 @@
-# Android E2E Automation Solution
+# Brawl Stars Automation (Google Play → Game → Payment Flow)
 
-## Goal
+This project implements an end-to-end mobile automation scenario:
 
-Automate an Android E2E flow:
+- Log into a Google account (pre-configured session)
+- Install and launch Brawl Stars
+- Pass onboarding
+- Complete the tutorial level
+- Navigate to in-game purchase
+- Open Google Pay (dry run)
 
-1. Connect to a remote Android device through Appium.
-2. Check Google Play login state.
-3. Log in only when required.
-4. Install Brawl Stars from Google Play if it is not installed.
-5. Launch the game.
-6. Handle onboarding screens.
-7. Detect whether the game is already in the main menu.
-8. Navigate to the shop.
-9. Perform a payment dry-run by detecting the offer/payment entry point.
-10. Finish within a 180-second execution budget.
+---
 
-## Runtime
+## ⚠️ Important Note
 
-The script is designed to run from Replit as an orchestration layer.
+Automation is executed **outside of Replit**, on a machine with:
+- Android emulator
+- Appium
+- Local agent
 
-Replit stores:
-- Python code
-- environment variables
-- device provider credentials
-- execution logs
+Replit is used only as a **control layer (API)**.
 
-The Android device itself is provided by a remote device-farm provider through an Appium endpoint.
+---
 
-## Required Environment Variables
+# 🧩 System Design
 
-```env
-GOOGLE_EMAIL=
-GOOGLE_PASSWORD=
-APPIUM_SERVER=
-DEVICE_UDID=
+The system is divided into two logical layers:
+
+## 1. Execution Layer (Device-side)
+
+Runs on a local machine or device farm.
+
+Components:
+- Android Emulator (MuMu / Android SDK)
+- Appium (UI automation driver)
+- `main.py` (automation сценарий)
+
+Responsibilities:
+- Control the device UI
+- Execute the full scenario
+- Handle dynamic UI and game logic
+
+---
+
+## 2. Control Layer (Remote API)
+
+Runs on Replit.
+
+Components:
+- FastAPI server (`server.py`)
+- HTTP API (`/run`)
+
+Responsibilities:
+- Trigger automation remotely
+- Act as a centralized controller
+- Enable scaling to multiple devices
+
+---
+
+# 🔗 Communication
+
+Replit cannot access local devices directly.
+
+To solve this:
+
+- A lightweight **agent** runs on the device machine
+- **ngrok** exposes the agent to the internet
+
+---
+
+## Flow 
+```Replit → HTTP → ngrok → agent → main.py → Appium → device
 ```
+---
 
-## Automation Stack
+# ⚙️ Components Explained
 
-Python
-Appium
-UiAutomator2
-OpenCV template matching
-Android shell input
-dotenv
-Remote Android device provider
+## Appium
 
-## Replit Usage
+Appium is used as a **device driver**.
 
-Replit is used as a lightweight orchestration environment for running the Python automation script.
+It allows:
+- tapping elements
+- swiping
+- entering text
+- interacting with UI via locators
 
-It is responsible for:
+It replaces raw ADB commands with a higher-level abstraction.
 
-- Storing and running the Python code.
-- Managing environment variables through Replit Secrets.
-- Connecting to a remote Appium server through `APPIUM_SERVER`.
-- Passing the target Android device id through `DEVICE_UDID`.
-- Collecting console logs and debug screenshots.
+---
 
-The Android device itself is not expected to run inside Replit.
+## Agent (`infra/agent.py`)
 
-Instead, the device is provided by one of the following options:
+A lightweight FastAPI server running locally.
 
-- A remote real-device provider.
-- A private Android device farm.
-- A cloud Android emulator with an exposed Appium endpoint.
-- A local machine running Appium, exposed to Replit through a tunnel.
+Responsibilities:
+- expose `/run` endpoint
+- start `main.py` via subprocess
 
-In this setup, Replit acts only as the control plane, while Appium and the Android device act as the execution environment.
+---
+
+## ngrok
+
+A tunneling service that exposes the local agent to the internet.
+
+Without ngrok:
+- Replit cannot reach the device
+
+---
+
+## Replit (`infra/server.py`)
+
+Acts as a **control plane**.
+
+Responsibilities:
+- expose `/run` API
+- forward requests to agent
+- orchestrate execution
+
+---
 
 ## Execution Architecture
-
-Multiple agents can be connected to scale across devices
 
 ```text
 Replit (Control Layer API)
@@ -96,6 +144,17 @@ Appium
   ↓
 Emulator → Game → Google Pay (dry run)
 ```
+1. User sends request:
+POST /run
+2. Replit forwards request to agent via ngrok
+3. Agent runs: python main.py
+4. `main.py`:
+- opens Play Store
+- installs Brawl Stars
+- completes onboarding
+- passes tutorial level
+- opens purchase screen
+- detects Google Pay
 
 ## Device Provider Requirements
 
@@ -118,31 +177,72 @@ Sauce Labs Real Device Cloud
 HeadSpin
 Private Appium Grid
 
-## DOM Resilience
-The script does not rely only on DOM selectors.
+---
 
-For important actions it uses a hybrid approach:
-1. Try XPath / UiAutomator selector.
-2. If DOM changes or selector fails, fallback to OpenCV template matching.
-3. If CV also fails, save a debug screenshot and use a controlled fallback when safe.
+# 💳 Payment (Dry Run)
 
-## CV Templates
+The script does NOT complete payment.
 
-Require: 
-```assets/google_signin_btn.png
-assets/install_btn.png
-assets/age_slider.png
-assets/level0_start.png
-assets/shop_btn.png
-assets/name_ok_btn.png
-assets/offer_price.png
+Instead it:
+- opens Google Pay UI
+- verifies it is displayed
+- stops execution
+
+---
+
+# 🧠 Robustness
+
+The system handles unstable UI using:
+
+- multiple locator strategies
+- fallback interactions
+- state-based loops (instead of fixed steps)
+- random gameplay to avoid idle detection
+
+---
+
+# 🤖 CV / UI Adaptation
+
+Basic visual fallback is implemented for cases where:
+- UI elements are not accessible via DOM
+- game uses canvas-based rendering
+
+---
+
+# 🏗️ Why This Architecture?
+
+Direct execution from Replit is not possible because:
+
+- Replit has no access to local devices
+- Appium requires a real device/emulator
+
+Therefore:
+
+- Execution is moved to a local node (agent)
+- Control is handled remotely via API
+- ngrok bridges the network gap
+
+---
+
+# 🔌 How to Run
+
+## On execution machine:
+
+```bash
+appium
+uvicorn infra.agent:app --host 0.0.0.0 --port 9000
+ngrok http 9000
 ```
 
-## Payment Safety
-
-The script performs only a payment dry-run.
-It reaches the offer/payment entry point and validates that the purchase flow can be opened.
-Final purchase confirmation is not automated outside an authorized billing test environment.
+In Replit
+```bash
+uvicorn infra.server:app --host 0.0.0.0 --port 3000
+```
+Trigger Scenario
+```bash
+curl -X POST https://your-replit-url/run
+```
+---
 
 ## Timing Notes
 
@@ -154,3 +254,15 @@ The target execution time is up to 180 seconds for a warm-device scenario:
 - The first launch does not require long additional downloads.
 
 A cold start with fresh Google login, full Play Store installation, or long in-game asset loading may exceed 180 seconds because these steps depend on Google Play, network speed, device performance, and game-side loading time.
+
+---
+
+🧾 Summary
+
+This project implements a distributed mobile automation system:
+
+Execution is performed on devices via Appium
+Control is handled via API (Replit)
+Communication is enabled through agent + ngrok
+
+The system is resilient, scalable, and aligned with the requirements.
