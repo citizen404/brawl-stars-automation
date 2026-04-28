@@ -71,29 +71,30 @@ In this setup, Replit acts only as the control plane, while Appium and the Andro
 
 ## Execution Architecture
 
-```text
-Replit (API)
-  |
-  | Python + Appium client
-  v
-Remote Appium Server
-  |
-  | UiAutomator2
-  v
-Android Device / Emulator
-  |
-  v
-Google Play + Brawl Stars
+Multiple agents can be connected to scale across devices
 
-POST /run
-   ↓
-ngrok
-   ↓
-agent (твоя машина)
-   ↓
+```text
+Replit (Control Layer API)
+  |
+  | HTTP
+  v
+Ngrok (tunnel)
+  |
+  | POST /run
+  v
+Agent (server)
+  |
+  | subprocess
+  v
 main.py
-   ↓
-Appium → эмулятор → игра → Google Pay (dry run)
+  |
+  | commands
+  v
+Appium
+  |
+  | UI Control (UiAutomator2)
+  ↓
+Emulator → Game → Google Pay (dry run)
 ```
 
 ## Device Provider Requirements
@@ -117,7 +118,7 @@ Sauce Labs Real Device Cloud
 HeadSpin
 Private Appium Grid
 
-DOM Resilience
+## DOM Resilience
 The script does not rely only on DOM selectors.
 
 For important actions it uses a hybrid approach:
@@ -135,46 +136,7 @@ assets/level0_start.png
 assets/shop_btn.png
 assets/name_ok_btn.png
 assets/offer_price.png
-
-
-# server.py
-from fastapi import FastAPI
-import requests
-
-app = FastAPI()
-
-AGENT_URL = "/run"
-
-@app.get("/")
-def root():
-    return {"status": "ok"}
-
-@app.post("/run")
-def run():
-    try:
-        print("➡️ Sending request to agent:", AGENT_URL)
-
-        r = requests.post(AGENT_URL, timeout=15)
-
-        print("⬅️ Response:", r.status_code, r.text)
-
-        return {
-            "success": True,
-            "agent_status": r.status_code,
-            "agent_response": r.text
-        }
-
-    except Exception as e:
-        print("❌ ERROR:", str(e))
-        return {
-            "success": False,
-            "error": str(e)
-        }
 ```
-
-
-
-
 
 ## Payment Safety
 
