@@ -80,12 +80,12 @@ def handle_google_auth(driver):
             driver.tap([(int(w * 0.5), int(h * 0.67))])
             time.sleep(0.4)
 
-        time.sleep(10) 
+        time.sleep(4) 
         
         # Step 2: Email entry
         print(f"Entering email: {GOOGLE_EMAIL}")
         driver.tap([(int(w * 0.5), int(h * 0.33))]) 
-        time.sleep(1.5)
+        time.sleep(1)
         driver.execute_script('mobile: shell', {'command': 'input', 'args': ['text', GOOGLE_EMAIL]})
         time.sleep(0.5)
         driver.tap([(int(w * 0.88), int(h * 0.94))]) 
@@ -98,7 +98,7 @@ def handle_google_auth(driver):
         driver.execute_script('mobile: shell', {'command': 'input', 'args': ['text', GOOGLE_PASSWORD]})
         time.sleep(1)
         driver.tap([(int(w * 0.88), int(h * 0.94))]) 
-        time.sleep(10)
+        time.sleep(5)
         
 	# Step 4: 'I agree' screen
         print("Accepting Google Terms (I agree screen)...")
@@ -107,7 +107,7 @@ def handle_google_auth(driver):
             for x_coord in [0.75, 0.80, 0.85]:
                 driver.tap([(int(w * x_coord), int(h * y_coord))])
                 time.sleep(0.2)
-        time.sleep(6) 
+        time.sleep(5) 
 
         # Step 5: Google Services (Accept)
         print("Handling Google Services screen...")
@@ -122,7 +122,7 @@ def handle_google_auth(driver):
                 driver.tap([(int(w * x_coord), int(h * y_coord))])
                 time.sleep(0.2)
 
-        time.sleep(15)         
+        time.sleep(5)         
         return True 
         
     except Exception as e:
@@ -283,7 +283,7 @@ def handle_google_login(driver):
     locators = ["//*[contains(@text, 'Sign in')]", "//*[contains(@text, 'Войти')]"]
     if smart_click(driver, locators, "assets/google_signin_btn.png"):
         print("Login initiated")
-        time.sleep(4)
+        time.sleep(2)
 
 #--------------------------1----------------------------
 
