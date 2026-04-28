@@ -203,6 +203,8 @@ The system handles unstable UI using:
 ---
 
 # 🤖 CV / UI Adaptation
+CV is used as a fallback mechanism when UI elements are not accessible
+via standard locators (e.g., game canvas or dynamic UI).
 
 Basic visual fallback is implemented for cases where:
 - UI elements are not accessible via DOM
@@ -222,6 +224,8 @@ Therefore:
 - Execution is moved to a local node (agent)
 - Control is handled remotely via API
 - ngrok bridges the network gap
+
+This architecture allows connecting multiple agents, enabling a simple device farm.
 
 ---
 
