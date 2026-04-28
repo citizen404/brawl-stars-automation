@@ -71,19 +71,30 @@ In this setup, Replit acts only as the control plane, while Appium and the Andro
 
 ## Execution Architecture
 
+Multiple agents can be connected to scale across devices
+
 ```text
-Replit
+Replit (Control Layer API)
   |
-  | Python + Appium client
+  | HTTP
   v
-Remote Appium Server
+Ngrok (tunnel)
   |
-  | UiAutomator2
+  | POST /run
   v
-Android Device / Emulator
+Agent (server)
   |
+  | subprocess
   v
-Google Play + Brawl Stars
+main.py
+  |
+  | commands
+  v
+Appium
+  |
+  | UI Control (UiAutomator2)
+  ↓
+Emulator → Game → Google Pay (dry run)
 ```
 
 ## Device Provider Requirements
@@ -107,7 +118,7 @@ Sauce Labs Real Device Cloud
 HeadSpin
 Private Appium Grid
 
-DOM Resilience
+## DOM Resilience
 The script does not rely only on DOM selectors.
 
 For important actions it uses a hybrid approach:
@@ -124,7 +135,8 @@ assets/age_slider.png
 assets/level0_start.png
 assets/shop_btn.png
 assets/name_ok_btn.png
-assets/offer_price.png```
+assets/offer_price.png
+```
 
 ## Payment Safety
 
