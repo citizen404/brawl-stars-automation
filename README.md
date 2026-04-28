@@ -69,7 +69,8 @@ To solve this:
 ---
 
 ## Flow 
-```Replit → HTTP → ngrok → agent → main.py → Appium → device
+```
+Replit → HTTP → ngrok → agent → main.py → Appium → device
 ```
 ---
 
